@@ -4,18 +4,22 @@ import { useState } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { fetchNotes } from '../../../services/noteService';
-import type { Note } from '../../../types/note';
+import { fetchNotes } from '@/lib/api';
+import type { Note } from '@/types/note';
 
-import { NoteList } from '../../../components/NoteList/NoteList';
-import { SearchBox } from '../../../components/SearchBox/SearchBox';
-import { Modal } from '../../../components/Modal/Modal';
-import { NoteForm } from '../../../components/NoteForm/NoteForm';
-import { Pagination } from '../../../components/Pagination/Pagination';
+import { NoteList } from '@/components/NoteList/NoteList';
+import { SearchBox } from '@/components/SearchBox/SearchBox';
+import { Modal } from '@/components/Modal/Modal';
+import { NoteForm } from '@/components/NoteForm/NoteForm';
+import { Pagination } from '@/components/Pagination/Pagination';
 
 import css from './NotesPage.module.css';
 
-export default function NotesPageClient() {
+interface NotesPageClientProps {
+  tag?: string;
+}
+
+export default function NotesPageClient({ tag }: NotesPageClientProps) {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -34,8 +38,8 @@ export default function NotesPageClient() {
   };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['notes', page, searchQuery],
-    queryFn: () => fetchNotes(page, perPage, searchQuery),
+    queryKey: ['notes', page, searchQuery, tag],
+    queryFn: () => fetchNotes(page, perPage, searchQuery, tag),
     placeholderData: keepPreviousData,
   });
 
@@ -62,13 +66,9 @@ export default function NotesPageClient() {
       {isLoading && <p>Loading notes...</p>}
       {isError && <p>Failed to load notes.</p>}
 
-      {!isLoading && !isError && notes.length > 0 && (
-        <NoteList notes={notes} />
-      )}
+      {!isLoading && !isError && notes.length > 0 && <NoteList notes={notes} />}
 
-      {!isLoading && !isError && notes.length === 0 && (
-        <p>No notes found.</p>
-      )}
+      {!isLoading && !isError && notes.length === 0 && <p>No notes found.</p>}
 
       {!isLoading && !isError && totalPages > 1 && (
         <Pagination
